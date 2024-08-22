@@ -1,0 +1,12 @@
+[submodule "tools/owi"]
+	path = tools/owi
+	url = https://github.com/OCamlPro/owi.git
+[submodule "tools/wasp"]
+	path = tools/wasp
+	url = git@github.com:formalsec/wasp.git
+[submodule "tools/SeeWasm"]
+	path = tools/SeeWasm
+	url = https://github.com/PKU-ASAL/SeeWasm.git
+[submodule "tools/manticore"]
+	path = tools/manticore
+	url = https://github.com/trailofbits/manticore.git
