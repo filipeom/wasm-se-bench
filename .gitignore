@@ -1,1 +1,4 @@
 _build
+
+# Owi/Wasp output directories
+*-out/
