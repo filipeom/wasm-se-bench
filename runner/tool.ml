@@ -7,15 +7,23 @@ type tool_type =
 type t =
   { tool : tool_type
   ; flags : string list
+  ; cpus : int
   }
 
-let make ?(flags = []) tool = { tool; flags }
+let make ?(flags = []) ?(cpus = 1) tool = { tool; flags; cpus }
 
-let cmd { tool; flags } workspace file =
+let cmd { tool; flags; cpus } workspace file =
   match tool with
   | Owi ->
       Cmd.(
-        v "owi" % "sym" %% of_list flags % "--workspace" % p workspace % p file)
+        v "owi"
+        % "sym"
+        %% of_list flags
+        % "-w"
+        % string_of_int cpus
+        % "--workspace"
+        % p workspace
+        % p file)
   | Wasp ->
       Cmd.(
         v "wasp"

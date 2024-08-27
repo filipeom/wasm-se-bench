@@ -5,6 +5,8 @@ let ( let* ) = Result.bind
 
 let owi = Tool.make ~flags:[ "--fail-on-assertion-only" ] Owi
 
+let owi_w20 = Tool.make ~flags:[ "--fail-on-assertion-only" ] ~cpus:20 Owi
+
 let wasp = Tool.make Wasp
 
 let _ = [ owi; wasp ]
@@ -42,12 +44,15 @@ let out_results tool dataset results outfile =
 let result =
   let* dataset = dataset in
   let _ = OS.Dir.create results_dir in
-  let owi_out = Fpath.(results_dir / "owi") in
-  let owi_res = List.map (run_single owi owi_out) dataset in
-  let _ = out_results owi dataset owi_res Fpath.(owi_out / "results") in
   let wasp_out = Fpath.(results_dir / "wasp") in
   let wasp_res = List.map (run_single wasp wasp_out) dataset in
   let _ = out_results wasp dataset wasp_res Fpath.(wasp_out / "results") in
+  let owi_out = Fpath.(results_dir / "owi") in
+  let owi_res = List.map (run_single owi owi_out) dataset in
+  let _ = out_results owi dataset owi_res Fpath.(owi_out / "results") in
+  let owi_out = Fpath.(results_dir / "owi_w20") in
+  let owi_res = List.map (run_single owi_w20 owi_out) dataset in
+  let _ = out_results owi dataset owi_res Fpath.(owi_out / "results") in
   Ok ()
 
 let () =
