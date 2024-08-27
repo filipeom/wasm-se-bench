@@ -3,7 +3,7 @@
 	url = https://github.com/OCamlPro/owi.git
 [submodule "tools/wasp"]
 	path = tools/wasp
-	url = git@github.com:formalsec/wasp.git
+	url = https://github.com/formalsec/wasp.git
 [submodule "tools/SeeWasm"]
 	path = tools/SeeWasm
 	url = https://github.com/PKU-ASAL/SeeWasm.git
