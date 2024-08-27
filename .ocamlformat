@@ -1,0 +1,13 @@
+break-separators=before
+break-collection-expressions=fit-or-vertical
+break-infix=fit-or-vertical
+break-colon=before
+break-fun-decl=wrap
+break-separators=before
+dock-collection-brackets=false
+field-space=loose
+module-item-spacing=sparse
+let-binding-spacing=compact
+type-decl=sparse
+parse-docstrings=true
+single-case=compact
