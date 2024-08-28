@@ -2,36 +2,11 @@
 import os
 import sys
 import csv
-import json
 import glob
 import time
-import threading
-import subprocess
+from datetime import datetime
 
 from manticore.wasm import ManticoreWASM
-
-def execute(test, output):
-    try:
-        start = time.time()
-        result = subprocess.run(
-            [
-                './wasp',
-                test,
-                '-m',
-                str(-1),
-                '--workspace',
-                output,
-                '--smt-assume'
-            ],
-            check=True,
-            capture_output=True
-        )
-        code = result.returncode
-    except subprocess.CalledProcessError as e:
-        code = e.returncode
-    finally:
-        delta = time.time() - start
-    return code, delta
 
 def progress(msg, i, t, prev=0):
     curr_int = round((i / t) * 100)
@@ -42,47 +17,6 @@ def progress(msg, i, t, prev=0):
     sys.stdout.write(prog_str)
     sys.stdout.flush()
     return 7 + len(msg)
-
-def btree():
-    output = 'wasp_output'
-    if not os.path.exists(output):
-        os.makedirs(output)
-
-    btree_dir = 'tests/btree'
-    results_path = os.path.join(output, 'results-btree-wasp.csv')
-    with open(results_path, 'w') as f:
-        csvwriter = csv.writer(f)
-        csvwriter.writerow([
-            'Test',
-            'T_WASP',
-            'T_Loop',
-            'T_Solver',
-            'N_Paths'
-        ])
-
-    print(f'Running tests in \'{btree_dir}\'...')
-    tests = glob.glob(os.path.join(btree_dir, '*u.wast'))
-    total, prev = len(tests), 0
-    for i, t in enumerate(sorted(tests)):
-        prev = progress(f'Running \'{t}\'...', i + 1, total, prev=prev)
-
-        output_dir = os.path.join(output, os.path.basename(t))
-        _, runtime = execute(t, output_dir)
-
-        report_path = os.path.join(output_dir, 'report.json')
-        with open(report_path, 'r') as repf, \
-                open(results_path, 'a') as resf:
-            report = json.load(repf)
-            csvwriter = csv.writer(resf)
-            csvwriter.writerow([
-                os.path.basename(t),
-                runtime,
-                report['loop_time'],
-                report['solver_time'],
-                report['paths_explored']
-            ])
-
-    print(f'\nAll Done!')
 
 def gen_2o1u(state):
     a = state.new_symbolic_value(32, 'a')
@@ -979,31 +913,31 @@ def gen_9o2u(state):
     return [a, b, c, d, e, f, g, x, y, h, i]
 
 MAPPING = {
-    'tests/btree-manticore/2o1u.wasm' : gen_2o1u,
-    'tests/btree-manticore/2o2u.wasm' : gen_2o2u,
-    'tests/btree-manticore/2o3u.wasm' : gen_2o3u,
-    'tests/btree-manticore/3o1u.wasm' : gen_3o1u,
-    'tests/btree-manticore/3o2u.wasm' : gen_3o2u,
-    'tests/btree-manticore/3o3u.wasm' : gen_3o3u,
-    'tests/btree-manticore/4o1u.wasm' : gen_4o1u,
-    'tests/btree-manticore/4o2u.wasm' : gen_4o2u,
-    'tests/btree-manticore/4o3u.wasm' : gen_4o3u,
-    'tests/btree-manticore/5o1u.wasm' : gen_5o1u,
-    'tests/btree-manticore/5o2u.wasm' : gen_5o2u,
-    'tests/btree-manticore/5o3u.wasm' : gen_5o3u,
-    'tests/btree-manticore/6o1u.wasm' : gen_6o1u,
-    'tests/btree-manticore/6o2u.wasm' : gen_6o2u,
-    'tests/btree-manticore/6o3u.wasm' : gen_6o3u,
-    'tests/btree-manticore/7o1u.wasm' : gen_7o1u,
-    'tests/btree-manticore/7o2u.wasm' : gen_7o2u,
-    'tests/btree-manticore/7o3u.wasm' : gen_7o3u,
-    'tests/btree-manticore/8o1u.wasm' : gen_8o1u,
-    'tests/btree-manticore/8o2u.wasm' : gen_8o2u,
-    'tests/btree-manticore/9o1u.wasm' : gen_9o1u,
-    'tests/btree-manticore/9o2u.wasm' : gen_9o2u,
+    'datasets/btree/manticore/2o1u.wasm' : gen_2o1u,
+    'datasets/btree/manticore/2o2u.wasm' : gen_2o2u,
+    'datasets/btree/manticore/2o3u.wasm' : gen_2o3u,
+    'datasets/btree/manticore/3o1u.wasm' : gen_3o1u,
+    'datasets/btree/manticore/3o2u.wasm' : gen_3o2u,
+    'datasets/btree/manticore/3o3u.wasm' : gen_3o3u,
+    'datasets/btree/manticore/4o1u.wasm' : gen_4o1u,
+    'datasets/btree/manticore/4o2u.wasm' : gen_4o2u,
+    'datasets/btree/manticore/4o3u.wasm' : gen_4o3u,
+    'datasets/btree/manticore/5o1u.wasm' : gen_5o1u,
+    'datasets/btree/manticore/5o2u.wasm' : gen_5o2u,
+    'datasets/btree/manticore/5o3u.wasm' : gen_5o3u,
+    'datasets/btree/manticore/6o1u.wasm' : gen_6o1u,
+    'datasets/btree/manticore/6o2u.wasm' : gen_6o2u,
+    'datasets/btree/manticore/6o3u.wasm' : gen_6o3u,
+    'datasets/btree/manticore/7o1u.wasm' : gen_7o1u,
+    'datasets/btree/manticore/7o2u.wasm' : gen_7o2u,
+    'datasets/btree/manticore/7o3u.wasm' : gen_7o3u,
+    'datasets/btree/manticore/8o1u.wasm' : gen_8o1u,
+    'datasets/btree/manticore/8o2u.wasm' : gen_8o2u,
+    'datasets/btree/manticore/9o1u.wasm' : gen_9o1u,
+    'datasets/btree/manticore/9o2u.wasm' : gen_9o2u,
 }
 
-def btree_manticore():
+def main():
     def run(test, arg_gen, output):
         start = time.time()
         m = ManticoreWASM(test, workspace_url=output)
@@ -1011,16 +945,17 @@ def btree_manticore():
         m.finalize()
         return time.time() - start
 
-    output = 'mcore_output'
+    now = datetime.now().strftime("%Y%m%d_%Hh%Mm%Ss")
+    output = f'results-mcore-{now}'
     if not os.path.exists(output):
         os.makedirs(output)
 
-    csvtbl = os.path.join(output, 'results-btree-mcore.csv')
+    csvtbl = os.path.join(output, 'results.csv')
     with open(csvtbl, 'w') as f:
         csvwriter = csv.writer(f)
         csvwriter.writerow(['test', 'time_elapsed', 'n-paths'])
 
-    i, prev, total, tbl = 0, 0, len(list(MAPPING.items())), []
+    i, prev, total = 0, 0, len(list(MAPPING.items()))
     for test, gen in MAPPING.items():
         prev = progress(f'Running \'{test}\'...', i + 1, total,
                         prev=prev)
@@ -1039,20 +974,6 @@ def btree_manticore():
         i += 1
     print(f'\nAll Done!')
 
-def main(argv=None):
-    # execute btree tests
-    threads = []
-    t1 = threading.Thread(target=btree, args=())
-    threads.append(t1)
-    t1.start()
-
-    t2 = threading.Thread(target=btree_manticore, args=())
-    threads.append(t2)
-    t2.start()
-
-    for t in threads:
-        t.join()
-    return 0
-
 if __name__ == '__main__':
-    sys.exit(main())
+    main()
+    sys.exit(0)
