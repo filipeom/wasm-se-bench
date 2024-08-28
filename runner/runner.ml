@@ -42,11 +42,11 @@ let results_dir =
 let result =
   let* dataset = dataset in
   let _ = OS.Dir.create results_dir in
-  let wasp_out = Fpath.(results_dir / "wasp") in
+  let wasp_out = Fpath.(results_dir / Tool.to_string wasp) in
   let wasp_res = List.map (run_single wasp wasp_out) dataset in
-  let owi_out = Fpath.(results_dir / "owi") in
+  let owi_out = Fpath.(results_dir / Tool.to_string owi) in
   let owi_res = List.map (run_single owi owi_out) dataset in
-  let owi_out = Fpath.(results_dir / "owi_w20") in
+  let owi_out = Fpath.(results_dir / Tool.to_string owi_w20) in
   let owi_w20_res = List.map (run_single owi_w20 owi_out) dataset in
   let table =
     [ List.map (fun p -> Fpath.(to_string @@ base p)) dataset

@@ -33,5 +33,9 @@ let cmd { tool; flags; cpus } workspace file =
         % p workspace
         % p file)
 
-let pp fmt { tool; _ } =
-  match tool with Owi -> Fmt.string fmt "owi" | Wasp -> Fmt.string fmt "wasp"
+let pp fmt { tool; cpus; _ } =
+  match tool with
+  | Owi -> Fmt.pf fmt "owi_w%d" cpus
+  | Wasp -> Fmt.string fmt "wasp"
+
+let to_string t = Fmt.str "%a" pp t
