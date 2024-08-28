@@ -15,9 +15,12 @@ let dataset_dir = Fpath.v "./datasets/btree/wat"
 
 let dataset =
   let* dataset_root = OS.Dir.must_exist dataset_dir in
-  OS.Dir.fold_contents
-    (fun p acc -> if Fpath.has_ext ".wat" p then p :: acc else acc)
-    [] dataset_root
+  let* dataset =
+    OS.Dir.fold_contents
+      (fun p acc -> if Fpath.has_ext ".wat" p then p :: acc else acc)
+      [] dataset_root
+  in
+  Ok (List.sort Fpath.compare dataset)
 
 (* TODO: catch errors and return codes of tools *)
 let run_single t workspace file =
@@ -36,26 +39,23 @@ let results_dir =
   Fmt.kstr Fpath.v "./results-%d%02d%02d_%02dh%02dm%02ds" (1900 + t.tm_year)
     (1 + t.tm_mon) t.tm_mday t.tm_hour t.tm_min t.tm_sec
 
-let out_results tool dataset results outfile =
-  let comma fmt () = Fmt.string fmt "," in
-  OS.File.writef outfile "tool,%a@\n%a,%a@."
-    (Fmt.list ~sep:comma Fpath.pp)
-    dataset Tool.pp tool
-    (Fmt.list ~sep:comma Fmt.float)
-    results
-
 let result =
   let* dataset = dataset in
   let _ = OS.Dir.create results_dir in
   let wasp_out = Fpath.(results_dir / "wasp") in
   let wasp_res = List.map (run_single wasp wasp_out) dataset in
-  let _ = out_results wasp dataset wasp_res Fpath.(wasp_out / "results") in
   let owi_out = Fpath.(results_dir / "owi") in
   let owi_res = List.map (run_single owi owi_out) dataset in
-  let _ = out_results owi dataset owi_res Fpath.(owi_out / "results") in
   let owi_out = Fpath.(results_dir / "owi_w20") in
-  let owi_res = List.map (run_single owi_w20 owi_out) dataset in
-  let _ = out_results owi dataset owi_res Fpath.(owi_out / "results") in
+  let owi_w20_res = List.map (run_single owi_w20 owi_out) dataset in
+  let table =
+    [ List.map (fun p -> Fpath.(to_string @@ base p)) dataset
+    ; List.map string_of_float wasp_res
+    ; List.map string_of_float owi_res
+    ; List.map string_of_float owi_w20_res
+    ]
+  in
+  Csv.save ~separator:',' Fpath.(to_string (results_dir / "results")) table;
   Ok ()
 
 let () =
