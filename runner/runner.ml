@@ -55,7 +55,7 @@ let result =
     ; List.map string_of_float owi_w20_res
     ]
   in
-  Csv.save ~separator:',' Fpath.(to_string (results_dir / "results")) table;
+  Csv.save ~separator:',' Fpath.(to_string (results_dir / "results.csv")) table;
   Ok ()
 
 let () =
