@@ -24,7 +24,7 @@ let dataset =
 
 (* TODO: catch errors and return codes of tools *)
 let run_single t workspace file =
-  Fmt.epr "Running %a on %a@." Tool.pp t Fpath.pp (Fpath.base workspace);
+  Fmt.epr "Running %a on %a@." Tool.pp t Fpath.pp (Fpath.base file);
   let time_start = Unix.gettimeofday () in
   let workspace = Fpath.(workspace // base file) in
   let _ = OS.Dir.create ~path:true workspace in
