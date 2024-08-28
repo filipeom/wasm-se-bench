@@ -31,7 +31,10 @@ let run_single t workspace file =
   let _ = OS.Cmd.out_file stdout run_out in
   Unix.gettimeofday () -. time_start
 
-let results_dir = Fpath.v "./results"
+let results_dir =
+  let t = Unix.localtime (Unix.gettimeofday ()) in
+  Fmt.kstr Fpath.v "./results-%d%02d%02d_%02dh%02dm%02ds" (1900 + t.tm_year)
+    (1 + t.tm_mon) t.tm_mday t.tm_hour t.tm_min t.tm_sec
 
 let out_results tool dataset results outfile =
   let comma fmt () = Fmt.string fmt "," in
