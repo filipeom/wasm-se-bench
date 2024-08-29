@@ -9,18 +9,29 @@ let owi_w20 = Tool.make ~flags:[ "--fail-on-assertion-only" ] ~cpus:20 Owi
 
 let wasp = Tool.make Wasp
 
-let _ = [ owi; wasp ]
+let wat_dataset_dir = Fpath.v "./datasets/btree/with_ffi"
 
-let dataset_dir = Fpath.v "./datasets/btree/wat"
-
-let dataset =
-  let* dataset_root = OS.Dir.must_exist dataset_dir in
+let wat_dataset =
+  let* dataset_root = OS.Dir.must_exist wat_dataset_dir in
   let* dataset =
     OS.Dir.fold_contents
       (fun p acc -> if Fpath.has_ext ".wat" p then p :: acc else acc)
       [] dataset_root
   in
   Ok (List.sort Fpath.compare dataset)
+
+let wasm_dataset_dir = Fpath.v "./datasets/btree/native"
+
+let wasm_dataset =
+  let* dataset_root = OS.Dir.must_exist wasm_dataset_dir in
+  let* dataset =
+    OS.Dir.fold_contents
+      (fun p acc -> if Fpath.has_ext ".wat" p then p :: acc else acc)
+      [] dataset_root
+  in
+  Ok (List.sort Fpath.compare dataset)
+
+let _ = wasm_dataset
 
 (* TODO: catch errors and return codes of tools *)
 let run_single t workspace file =
@@ -40,7 +51,7 @@ let results_dir =
     (1 + t.tm_mon) t.tm_mday t.tm_hour t.tm_min t.tm_sec
 
 let result =
-  let* dataset = dataset in
+  let* dataset = wat_dataset in
   let _ = OS.Dir.create results_dir in
   let wasp_out = Fpath.(results_dir / Tool.to_string wasp) in
   let wasp_res = List.map (run_single wasp wasp_out) dataset in
