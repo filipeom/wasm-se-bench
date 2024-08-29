@@ -1,13 +1,17 @@
 open Prelude
 open Bos
 
-let ( let* ) = Result.bind
+let ( let* ) = Rresult.R.bind
 
 let owi = Tool.make ~flags:[ "--fail-on-assertion-only" ] Owi
 
 let owi_w20 = Tool.make ~flags:[ "--fail-on-assertion-only" ] ~cpus:20 Owi
 
 let wasp = Tool.make Wasp
+
+let seewasm = Tool.make SeeWasm
+
+let _ = [ owi; owi_w20; wasp; seewasm ]
 
 let wat_dataset_dir = Fpath.v "./datasets/btree/with_ffi"
 
@@ -26,7 +30,7 @@ let wasm_dataset =
   let* dataset_root = OS.Dir.must_exist wasm_dataset_dir in
   let* dataset =
     OS.Dir.fold_contents
-      (fun p acc -> if Fpath.has_ext ".wat" p then p :: acc else acc)
+      (fun p acc -> if Fpath.has_ext ".wasm" p then p :: acc else acc)
       [] dataset_root
   in
   Ok (List.sort Fpath.compare dataset)
@@ -51,21 +55,32 @@ let results_dir =
     (1 + t.tm_mon) t.tm_mday t.tm_hour t.tm_min t.tm_sec
 
 let result =
-  let* dataset = wat_dataset in
+  let* _ = wat_dataset in
+  let* wasm_dataset = wasm_dataset in
   let _ = OS.Dir.create results_dir in
-  let wasp_out = Fpath.(results_dir / Tool.to_string wasp) in
-  let wasp_res = List.map (run_single wasp wasp_out) dataset in
-  let owi_out = Fpath.(results_dir / Tool.to_string owi) in
-  let owi_res = List.map (run_single owi owi_out) dataset in
-  let owi_out = Fpath.(results_dir / Tool.to_string owi_w20) in
-  let owi_w20_res = List.map (run_single owi_w20 owi_out) dataset in
+  (* let wasp_out = Fpath.(results_dir / Tool.to_string wasp) in *)
+  (* let wasp_res = List.map (run_single wasp wasp_out) dataset in *)
+  (* let owi_out = Fpath.(results_dir / Tool.to_string owi) in *)
+  (* let owi_res = List.map (run_single owi owi_out) dataset in *)
+  (* let owi_out = Fpath.(results_dir / Tool.to_string owi_w20) in *)
+  (* let owi_w20_res = List.map (run_single owi_w20 owi_out) dataset in *)
+  (* let table = *)
+  (*   [ List.map (fun p -> Fpath.(to_string @@ base p)) dataset *)
+  (*   ; List.map string_of_float wasp_res *)
+  (*   ; List.map string_of_float owi_res *)
+  (*   ; List.map string_of_float owi_w20_res *)
+  (*   ] *)
+  (* in *)
+  let link_name = Fpath.(v "tools" / "SeeWasm" / "datasets") in
+  let* () = OS.Path.symlink ~force:true ~target:wasm_dataset_dir link_name in
+  let* cwd = OS.Dir.current () in
+  let* () = OS.Dir.set_current Fpath.(v "tools" / "SeeWasm") in
+  let seewasm_out = Fpath.(results_dir / Tool.to_string seewasm) in
+  let seewasm_res = List.map (run_single seewasm seewasm_out) wasm_dataset in
   let table =
-    [ List.map (fun p -> Fpath.(to_string @@ base p)) dataset
-    ; List.map string_of_float wasp_res
-    ; List.map string_of_float owi_res
-    ; List.map string_of_float owi_w20_res
-    ]
+    [ [ Tool.to_string seewasm ] @ List.map string_of_float seewasm_res ]
   in
+  let* () = OS.Dir.set_current cwd in
   Csv.save ~separator:',' Fpath.(to_string (results_dir / "results.csv")) table;
   Ok ()
 

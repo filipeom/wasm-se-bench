@@ -3,6 +3,7 @@ open Bos
 type tool_type =
   | Owi
   | Wasp
+  | SeeWasm
 
 type t =
   { tool : tool_type
@@ -32,10 +33,12 @@ let cmd { tool; flags; cpus } workspace file =
         % "--workspace"
         % p workspace
         % p file)
+  | SeeWasm -> Cmd.(v "python" % "launcher.py" % "-f" % p file % "-s")
 
 let pp fmt { tool; cpus; _ } =
   match tool with
   | Owi -> Fmt.pf fmt "owi_w%d" cpus
   | Wasp -> Fmt.string fmt "wasp"
+  | SeeWasm -> Fmt.string fmt "seewasm"
 
 let to_string t = Fmt.str "%a" pp t
