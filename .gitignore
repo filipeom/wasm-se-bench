@@ -1,5 +1,6 @@
 _build
 _venv
 
-# Owi/Wasp output directories
+# Ignore tool output directories
 *-out/
+output/

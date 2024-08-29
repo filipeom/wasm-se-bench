@@ -71,16 +71,12 @@ let result =
   (*   ; List.map string_of_float owi_w20_res *)
   (*   ] *)
   (* in *)
-  let link_name = Fpath.(v "tools" / "SeeWasm" / "datasets") in
-  let* () = OS.Path.symlink ~force:true ~target:wasm_dataset_dir link_name in
-  let* cwd = OS.Dir.current () in
-  let* () = OS.Dir.set_current Fpath.(v "tools" / "SeeWasm") in
+  let _ = OS.Dir.create Fpath.(v "output" / "log") in
   let seewasm_out = Fpath.(results_dir / Tool.to_string seewasm) in
   let seewasm_res = List.map (run_single seewasm seewasm_out) wasm_dataset in
   let table =
     [ [ Tool.to_string seewasm ] @ List.map string_of_float seewasm_res ]
   in
-  let* () = OS.Dir.set_current cwd in
   Csv.save ~separator:',' Fpath.(to_string (results_dir / "results.csv")) table;
   Ok ()
 
