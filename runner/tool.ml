@@ -34,7 +34,14 @@ let cmd { tool; flags; cpus } workspace file =
         % p workspace
         % p file)
   | SeeWasm ->
-      Cmd.(v "python" % "tools/SeeWasm/launcher.py" % "-f" % p file % "-s")
+      Cmd.(
+        v "python"
+        % "tools/SeeWasm/launcher.py"
+        % "-f"
+        % p file
+        % "-s"
+        % "--entry"
+        % "main")
 
 let pp fmt { tool; cpus; _ } =
   match tool with
