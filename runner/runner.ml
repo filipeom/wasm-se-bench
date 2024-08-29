@@ -5,13 +5,13 @@ let ( let* ) = Rresult.R.bind
 
 let owi = Tool.make ~flags:[ "--fail-on-assertion-only" ] Owi
 
-let owi_w20 = Tool.make ~flags:[ "--fail-on-assertion-only" ] ~cpus:20 Owi
+let owi_w24 = Tool.make ~flags:[ "--fail-on-assertion-only" ] ~cpus:24 Owi
 
 let wasp = Tool.make Wasp
 
 let seewasm = Tool.make SeeWasm
 
-let _ = [ owi; owi_w20; wasp; seewasm ]
+let _ = [ owi; owi_w24; wasp; seewasm ]
 
 let wat_dataset_dir = Fpath.v "./datasets/btree/with_ffi"
 
