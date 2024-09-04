@@ -11,7 +11,24 @@ let wasp = Tool.make Wasp
 
 let seewasm = Tool.make SeeWasm
 
-let _ = [ owi; owi_w24; wasp; seewasm ]
+type run =
+  [ `Owi
+  | `Owi_24
+  | `Wasp
+  | `SeeWasm
+  | `All
+  ]
+
+let to_run : run ref = ref `Owi
+
+let to_run =
+  let open Tool in
+  match !to_run with
+  | `Owi -> [ (Owi, owi) ]
+  | `Owi_24 -> [ (Owi, owi_w24) ]
+  | `Wasp -> [ (Wasp, wasp) ]
+  | `SeeWasm -> [ (SeeWasm, seewasm) ]
+  | `All -> [ (Owi, owi); (Wasp, wasp); (SeeWasm, seewasm) ]
 
 let wat_dataset_dir = Fpath.v "./datasets/btree/with_ffi"
 
@@ -35,8 +52,6 @@ let wasm_dataset =
   in
   Ok (List.sort Fpath.compare dataset)
 
-let _ = wasm_dataset
-
 (* TODO: catch errors and return codes of tools *)
 let run_single t workspace file =
   Fmt.epr "Running %a on %a@." Tool.pp t Fpath.pp (Fpath.base file);
@@ -55,27 +70,22 @@ let results_dir =
     (1 + t.tm_mon) t.tm_mday t.tm_hour t.tm_min t.tm_sec
 
 let result =
-  let* _ = wat_dataset in
+  let* wat_dataset = wat_dataset in
   let* wasm_dataset = wasm_dataset in
   let _ = OS.Dir.create results_dir in
-  (* let wasp_out = Fpath.(results_dir / Tool.to_string wasp) in *)
-  (* let wasp_res = List.map (run_single wasp wasp_out) dataset in *)
-  (* let owi_out = Fpath.(results_dir / Tool.to_string owi) in *)
-  (* let owi_res = List.map (run_single owi owi_out) dataset in *)
-  (* let owi_out = Fpath.(results_dir / Tool.to_string owi_w20) in *)
-  (* let owi_w20_res = List.map (run_single owi_w20 owi_out) dataset in *)
-  (* let table = *)
-  (*   [ List.map (fun p -> Fpath.(to_string @@ base p)) dataset *)
-  (*   ; List.map string_of_float wasp_res *)
-  (*   ; List.map string_of_float owi_res *)
-  (*   ; List.map string_of_float owi_w20_res *)
-  (*   ] *)
-  (* in *)
-  let _ = OS.Dir.create Fpath.(v "output" / "log") in
-  let seewasm_out = Fpath.(results_dir / Tool.to_string seewasm) in
-  let seewasm_res = List.map (run_single seewasm seewasm_out) wasm_dataset in
   let table =
-    [ [ Tool.to_string seewasm ] @ List.map string_of_float seewasm_res ]
+    List.map
+      (function
+        | (Tool.Owi | Wasp), t ->
+            let out = Fpath.(results_dir / Tool.to_string t) in
+            let res = List.map (run_single t out) wat_dataset in
+            Tool.to_string t :: List.map string_of_float res
+        | SeeWasm, t ->
+            let _ = OS.Dir.create Fpath.(v "output" / "log") in
+            let out = Fpath.(results_dir / Tool.to_string t) in
+            let res = List.map (run_single seewasm out) wasm_dataset in
+            Tool.to_string t :: List.map string_of_float res)
+      to_run
   in
   Csv.save ~separator:',' Fpath.(to_string (results_dir / "results.csv")) table;
   Ok ()
