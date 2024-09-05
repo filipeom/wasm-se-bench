@@ -4,3 +4,6 @@ _venv
 # Ignore tool output directories
 *-out/
 output/
+
+# Ignore results
+results-*/
